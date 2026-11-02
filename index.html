@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Admin Command Center</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        discord: {
+                            blurple: '#5865F2',
+                            green: '#57F287',
+                            yellow: '#FEE75C',
+                            fuchsia: '#EB459E',
+                            red: '#ED4245',
+                            dark: '#36393f',
+                            darker: '#2f3136',
+                            darkest: '#202225',
+                            chat: '#36393F'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Modern Glassmorphism & Custom Animations */
+        body {
+            background-color: #0f1117;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(88, 101, 242, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(235, 69, 158, 0.12) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(87, 242, 135, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #f6f6f7;
+        }
+
+        .glass-panel {
+            background: rgba(32, 34, 37, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-card {
+            background: rgba(47, 49, 54, 0.5);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(88, 101, 242, 0.4);
+            box-shadow: 0 0 20px rgba(88, 101, 242, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .neon-border-blurple {
+            box-shadow: 0 0 15px rgba(88, 101, 242, 0.4);
+        }
+
+        .neon-text-blurple {
+            text-shadow: 0 0 10px rgba(88, 101, 242, 0.6);
+        }
+
+        .neon-border-green {
+            box-shadow: 0 0 15px rgba(87, 242, 135, 0.4);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(32, 34, 37, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #202225;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5865F2;
+        }
+
+        /* Animated Pulse Grid Background */
+        .bg-grid-pattern {
+            background-size: 30px 30px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+        }
+        .animate-pulse-glow {
+            animation: pulseGlow 4s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased min-h-screen bg-grid-pattern text-gray-100 flex flex-col justify-between overflow-x-hidden">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm pointer-events-none"></div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div id="app" class="min-h-screen flex flex-col">
+
+        <!-- ========================================== -->
+        <!-- 1. LOGIN SCREEN (Unauthenticated State)    -->
+        <!-- ========================================== -->
+        <div id="login-screen" class="min-h-screen flex items-center justify-center p-4 sm:p-6 relative">
+            <!-- Background Glow Blobs -->
+            <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-discord-blurple/20 rounded-full blur-3xl pointer-events-none animate-pulse-glow"></div>
+            <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-discord-fuchsia/15 rounded-full blur-3xl pointer-events-none animate-pulse-glow" style="animation-delay: 2s;"></div>
+
+            <div class="w-full max-w-xl glass-panel rounded-3xl p-8 sm:p-10 relative z-10 border border-white/10 shadow-2xl">
+                <!-- Header Logo & Title -->
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-discord-blurple/20 text-discord-blurple border border-discord-blurple/40 mb-4 shadow-lg shadow-discord-blurple/20 group hover:scale-105 transition-transform duration-300">
+                        <i class="fa-brands fa-discord text-4xl group-hover:rotate-12 transition-transform duration-300"></i>
+                    </div>
+                    <h1 class="text-3xl font-extrabold tracking-tight text-white mb-2">Discord Command Center</h1>
+                    <p class="text-gray-400 text-sm">Hệ thống quản lý Discord Server chuyên nghiệp & Điều khiển Webhook real-time</p>
+                </div>
+
+                <!-- OAuth Configuration Form -->
+                <div class="space-y-4 mb-6">
+                    <div class="bg-black/20 p-4 rounded-xl border border-white/5 space-y-3">
+                        <div class="flex items-center justify-between text-xs font-semibold text-discord-blurple uppercase tracking-wider">
+                            <span><i class="fa-solid fa-sliders mr-1.5"></i> Cấu hình kết nối OAuth2</span>
+                            <span class="text-gray-400 hover:text-white cursor-pointer" onclick="resetConfig()"><i class="fa-solid fa-rotate-right mr-1"></i> Mặc định</span>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-300 mb-1">Client ID (Discord App ID)</label>
+                            <input type="text" id="cfg-client-id" placeholder="Nhập Client ID từ Discord Developer Portal..." 
+                                   class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-discord-blurple transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-300 mb-1">Redirect URI (Callback URL)</label>
+                            <input type="text" id="cfg-redirect-uri" readonly
+                                   class="w-full bg-black/60 border border-white/5 rounded-lg px-3 py-2 text-sm text-gray-400 font-mono focus:outline-none cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-300 mb-1">Bot Token (Tùy chọn - Dùng quản lý Server/Channel)</label>
+                            <input type="password" id="cfg-bot-token" placeholder="Bot token để thực hiện REST Call thao tác Kênh..." 
+                                   class="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-discord-blurple transition-colors">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="space-y-3">
+                    <button id="btn-login-discord" onclick="loginWithDiscord()" 
+                            class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-discord-blurple to-indigo-600 hover:from-indigo-600 hover:to-discord-blurple text-white font-bold text-base shadow-xl shadow-discord-blurple/30 hover:shadow-discord-blurple/50 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-3 group">
+                        <i class="fa-brands fa-discord text-xl group-hover:animate-bounce"></i>
+                        <span>Đăng Nhập Bằng Discord OAuth2</span>
+                    </button>
+
+                    <button onclick="demoLogin()" 
+                            class="w-full py-3 px-6 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 font-medium text-sm transition-all duration-200 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-discord-yellow"></i>
+                        <span>Xem Demo Giao Diện (Không cần Token)</span>
+                    </button>
+                </div>
+
+                <!-- Footer info inside Login -->
+                <div class="mt-8 pt-6 border-t border-white/5 text-center text-xs text-gray-500 flex justify-between items-center">
+                    <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-discord-green animate-ping"></span> Hệ thống sẵn sàng</span>
+                    <span>Discord OAuth2 Protocol v10</span>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ========================================== -->
+        <!-- 2. MAIN DASHBOARD SCREEN (Authenticated)   -->
+        <!-- ========================================== -->
+        <div id="dashboard-screen" class="hidden min-h-screen flex flex-col md:flex-row">
+            
+            <!-- SIDEBAR NAV -->
+            <aside class="w-full md:w-72 glass-panel border-r border-white/10 flex flex-col justify-between shrink-0 z-20">
+                <div>
+                    <!-- App Brand -->
+                    <div class="p-5 border-b border-white/5 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-discord-blurple flex items-center justify-center text-white shadow-lg shadow-discord-blurple/30">
+                            <i class="fa-brands fa-discord text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-white leading-tight">Discord Admin</h2>
+                            <p class="text-[10px] text-discord-blurple font-mono uppercase tracking-widest font-semibold">Command Center</p>
+                        </div>
+                    </div>
+
+                    <!-- User Profile Quick Card -->
+                    <div class="p-4 m-3 rounded-2xl bg-black/30 border border-white/5 flex items-center gap-3">
+                        <div class="relative">
+                            <img id="user-avatar" src="https://cdn.discordapp.com/embed/avatars/0.png" alt="Avatar" class="w-12 h-12 rounded-full ring-2 ring-discord-blurple/50">
+                            <span id="user-status-indicator" class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-discord-green rounded-full border-2 border-discord-darkest"></span>
+                        </div>
+                        <div class="overflow-hidden">
+                            <h3 id="user-name" class="font-bold text-sm text-white truncate">Discord User</h3>
+                            <p id="user-tag" class="text-xs text-gray-400 font-mono truncate">#0000</p>
+                            <span id="auth-badge" class="inline-block mt-1 px-1.5 py-0.5 rounded text-[9px] font-mono bg-discord-green/20 text-discord-green border border-discord-green/30">OAuth Verified</span>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Links -->
+                    <nav class="p-3 space-y-1">
+                        <button onclick="switchTab('overview')" id="nav-overview" class="tab-btn w-full px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-medium text-gray-300 hover:bg-white/5 transition-all text-left group">
+                            <i class="fa-solid fa-chart-pie text-gray-400 group-hover:text-discord-blurple w-5 text-center"></i>
+                            <span>Tổng Quan Server & User</span>
+                        </button>
+                        <button onclick="switchTab('channels')" id="nav-channels" class="tab-btn w-full px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-medium text-gray-300 hover:bg-white/5 transition-all text-left group">
+                            <i class="fa-solid fa-hashtag text-gray-400 group-hover:text-discord-blurple w-5 text-center"></i>
+                            <span>Quản Lý Kênh</span>
+                        </button>
+                        <button onclick="switchTab('webhooks')" id="nav-webhooks" class="tab-btn w-full px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-medium text-gray-300 hover:bg-white/5 transition-all text-left group">
+                            <i class="fa-solid fa-satellite-dish text-gray-400 group-hover:text-discord-blurple w-5 text-center"></i>
+                            <span>Quản Lý Webhook</span>
+                        </button>
+                        <button onclick="switchTab('settings')" id="nav-settings" class="tab-btn w-full px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-medium text-gray-300 hover:bg-white/5 transition-all text-left group">
+                            <i class="fa-solid fa-key text-gray-400 group-hover:text-discord-blurple w-5 text-center"></i>
+                            <span>Cấu Hình & Token</span>
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Footer Logged Info / Logout -->
+                <div class="p-4 border-t border-white/5">
+                    <button onclick="logout()" class="w-full py-2.5 px-4 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-discord-red font-semibold text-sm border border-discord-red/20 transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Đăng Xuất</span>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- MAIN CONTENT AREA -->
+            <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+                
+                <!-- TOP HEADER -->
+                <header class="glass-panel sticky top-0 z-10 px-6 py-4 border-b border-white/10 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <h2 id="current-tab-title" class="text-xl font-bold text-white">Tổng Quan Server & User</h2>
+                    </div>
+
+                    <!-- Connection Status Badges -->
+                    <div class="flex items-center gap-3">
+                        <div id="status-bot" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/40 border border-white/10 text-xs font-mono">
+                            <span class="w-2 h-2 rounded-full bg-gray-500" id="bot-indicator"></span>
+                            <span class="text-gray-400" id="bot-status-text">Bot: Chưa Cấu Hình</span>
+                        </div>
+                        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-discord-blurple/20 border border-discord-blurple/40 text-xs font-mono text-discord-blurple">
+                            <span class="w-2 h-2 rounded-full bg-discord-green animate-pulse"></span>
+                            <span>OAuth: Active</span>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- DYNAMIC TAB CONTENTS -->
+                <div class="p-6 space-y-6 flex-1">
+
+                    <!-- TAB 1: OVERVIEW & USER/GUILDS -->
+                    <section id="tab-overview" class="tab-content space-y-6">
+                        <!-- User Card & Stats -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- User Profile Banner -->
+                            <div class="lg:col-span-1 glass-card rounded-3xl p-6 relative overflow-hidden flex flex-col justify-between">
+                                <div class="absolute -top-12 -right-12 w-40 h-40 bg-discord-blurple/20 rounded-full blur-2xl"></div>
+                                <div>
+                                    <div class="text-xs font-mono text-discord-blurple uppercase tracking-wider mb-4 font-semibold">User Identity</div>
+                                    <div class="flex flex-col items-center text-center">
+                                        <img id="overview-user-avatar" src="https://cdn.discordapp.com/embed/avatars/0.png" class="w-24 h-24 rounded-full ring-4 ring-discord-blurple/40 shadow-2xl mb-4">
+                                        <h3 id="overview-user-name" class="text-xl font-bold text-white">Discord Admin</h3>
+                                        <p id="overview-user-id" class="text-xs font-mono text-gray-400 mt-1">ID: 000000000000000000</p>
+                                        <div id="user-flags-container" class="flex flex-wrap gap-1.5 justify-center mt-3">
+                                            <!-- Badges inserted here -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-6 pt-4 border-t border-white/5 text-xs text-gray-400 space-y-2 font-mono">
+                                    <div class="flex justify-between"><span>Email:</span> <span id="overview-user-email" class="text-gray-200">Protected / API</span></div>
+                                    <div class="flex justify-between"><span>Locale:</span> <span id="overview-user-locale" class="text-gray-200">vi-VN</span></div>
+                                    <div class="flex justify-between"><span>MFA Enabled:</span> <span id="overview-user-mfa" class="text-discord-green">True</span></div>
+                                </div>
+                            </div>
+
+                            <!-- Guilds / Server Grid -->
+                            <div class="lg:col-span-2 glass-card rounded-3xl p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                        <i class="fa-solid fa-server text-discord-blurple"></i>
+                                        <span>Danh Sách Server (Guilds)</span>
+                                    </h3>
+                                    <span id="guild-count-badge" class="px-2.5 py-1 rounded-full text-xs font-mono bg-discord-blurple/20 text-discord-blurple border border-discord-blurple/30">0 Servers</span>
+                                </div>
+                                <p class="text-xs text-gray-400 mb-4">Danh sách các Server Discord thu thập được từ OAuth Token hoặc Bot integration.</p>
+
+                                <!-- Guild list grid -->
+                                <div id="guilds-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[340px] overflow-y-auto pr-1">
+                                    <!-- Rendered dynamically -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- System Status Summary -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="glass-card p-5 rounded-2xl flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-xl bg-discord-blurple/20 text-discord-blurple flex items-center justify-center text-xl">
+                                    <i class="fa-solid fa-bolt"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-400">OAuth API Status</p>
+                                    <p class="text-lg font-bold text-discord-green">Online (v10)</p>
+                                </div>
+                            </div>
+                            <div class="glass-card p-5 rounded-2xl flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-xl bg-discord-green/20 text-discord-green flex items-center justify-center text-xl">
+                                    <i class="fa-solid fa-satellite"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-400">Active Webhooks</p>
+                                    <p id="stat-webhook-count" class="text-lg font-bold text-white">0 Ready</p>
+                                </div>
+                            </div>
+                            <div class="glass-card p-5 rounded-2xl flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-xl bg-discord-yellow/20 text-discord-yellow flex items-center justify-center text-xl">
+                                    <i class="fa-solid fa-hashtag"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-400">Managed Channels</p>
+                                    <p id="stat-channel-count" class="text-lg font-bold text-white">0 Active</p>
+                                </div>
+                            </div>
+                            <div class="glass-card p-5 rounded-2xl flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-xl bg-discord-fuchsia/20 text-discord-fuchsia flex items-center justify-center text-xl">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-400">REST Client Mode</p>
+                                    <p id="stat-bot-mode" class="text-lg font-bold text-gray-300">OAuth / Direct</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- TAB 2: CHANNEL MANAGER -->
+                    <section id="tab-channels" class="tab-content hidden space-y-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Left: Channel Operations Forms -->
+                            <div class="lg:col-span-1 space-y-6">
+                                <!-- Create Channel Card -->
+                                <div class="glass-card rounded-3xl p-6 border-l-4 border-l-discord-green">
+                                    <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                                        <i class="fa-solid fa-plus text-discord-green"></i>
+                                        <span>Tạo Kênh Mới</span>
+                                    </h3>
+                                    <p class="text-xs text-gray-400 mb-4">Gửi yêu cầu REST API đến Discord để tạo channel trong Guild.</p>
+                                    
+                                    <form onsubmit="handleCreateChannel(event)" class="space-y-4">
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-300 mb-1">Guild ID (Server ID)</label>
+                                            <input type="text" id="chan-guild-id" required placeholder="Nhập Guild ID..."
+                                                   class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-discord-green">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-300 mb-1">Tên Kênh Mới</label>
+                                            <input type="text" id="chan-name" required placeholder="v.d. general-chat"
+                                                   class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-discord-green">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-300 mb-1">Loại Kênh</label>
+                                            <select id="chan-type" class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-discord-green">
+                                                <option value="0">💬 Kênh Văn Bản (Text Channel)</option>
+                                                <option value="2">🔊 Kênh Thoại (Voice Channel)</option>
+                                                <option value="4">📁 Danh Mục (Category)</option>
+                                                <option value="5">📢 Kênh Thông Báo (Announcement)</option>
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="w-full py-3 rounded-xl bg-discord-green text-gray-950 font-bold text-sm hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 shadow-lg shadow-discord-green/20">
+                                            <i class="fa-solid fa-square-plus"></i>
+                                            <span>Thực Hiện Tạo Kênh</span>
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <!-- Delete Channel Card -->
+                                <div class="glass-card rounded-3xl p-6 border-l-4 border-l-discord-red">
+                                    <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                                        <i class="fa-solid fa-trash-can text-discord-red"></i>
+                                        <span>Xóa Kênh Discord</span>
+                                    </h3>
+                                    <form onsubmit="handleDeleteChannel(event)" class="space-y-4">
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-300 mb-1">Channel ID Cần Xóa</label>
+                                            <input type="text" id="delete-chan-id" required placeholder="Nhập Channel ID..."
+                                                   class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-discord-red">
+                                        </div>
+                                        <button type="submit" class="w-full py-3 rounded-xl bg-discord-red/20 text-discord-red hover:bg-discord-red hover:text-white border border-discord-red/40 font-bold text-sm transition-all flex items-center justify-center gap-2">
+                                            <i class="fa-solid fa-trash"></i>
+                                            <span>Xóa Kênh Ngay</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Right: Channel Live Monitor Mock/List -->
+                            <div class="lg:col-span-2 glass-card rounded-3xl p-6 flex flex-col justify-between">
+                                <div>
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div>
+                                            <h3 class="text-lg font-bold text-white">Bảng Quản Lý Kênh Live</h3>
+                                            <p class="text-xs text-gray-400">Các kênh đã tạo trong phiên làm việc hiện tại</p>
+                                        </div>
+                                        <button onclick="clearChannelList()" class="px-3 py-1.5 rounded-lg text-xs bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10">Dọn dẹp</button>
+                                    </div>
+
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full text-left text-sm text-gray-300">
+                                            <thead class="text-xs uppercase bg-black/40 text-gray-400 border-b border-white/10">
+                                                <tr>
+                                                    <th class="p-3">Loại</th>
+                                                    <th class="p-3">Tên Kênh</th>
+                                                    <th class="p-3 font-mono">Channel ID</th>
+                                                    <th class="p-3">Hành Động</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="channels-table-body" class="divide-y divide-white/5 font-mono text-xs">
+                                                <!-- Dynamic Rows inserted here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 p-4 rounded-2xl bg-discord-blurple/10 border border-discord-blurple/20 text-xs text-discord-blurple flex items-center gap-3">
+                                    <i class="fa-solid fa-circle-info text-base shrink-0"></i>
+                                    <span>Để thực hiện tạo/xóa kênh THẬT trên Discord Server, hãy cấu hình <strong>Bot Token</strong> trong tab Cấu hình & Bot Token có đủ quyền Administrator/Manage Channels.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- TAB 3: WEBHOOK MANAGER & SENDER -->
+                    <section id="tab-webhooks" class="tab-content hidden space-y-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            
+                            <!-- Left: Create Webhook & Quick Message Sender -->
+                            <div class="space-y-6">
+                                <!-- Create Webhook Form -->
+                                <div class="glass-card rounded-3xl p-6">
+                                    <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                                        <i class="fa-solid fa-plus-circle text-discord-blurple"></i>
+                                        <span>Khởi Tạo Discord Webhook</span>
+                                    </h3>
+                                    <p class="text-xs text-gray-400 mb-4">Tạo Webhook endpoint trực tiếp trên channel thông qua Bot API.</p>
+
+                                    <form onsubmit="handleCreateWebhook(event)" class="space-y-4">
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-300 mb-1">Target Channel ID</label>
+                                            <input type="text" id="wh-chan-id" required placeholder="Nhập Channel ID cần gắn Webhook..."
+                                                   class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-discord-blurple">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-300 mb-1">Tên Webhook</label>
+                                            <input type="text" id="wh-name" required placeholder="v.d. System Broadcaster"
+                                                   class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-discord-blurple">
+                                        </div>
+                                        <button type="submit" class="w-full py-3 rounded-xl bg-discord-blurple hover:bg-indigo-600 text-white font-bold text-sm transition-all shadow-lg shadow-discord-blurple/30 flex items-center justify-center gap-2">
+                                            <i class="fa-solid fa-plug"></i>
+                                            <span>Tạo Webhook Discord</span>
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <!-- Direct Webhook Live Tester/Sender (REAL FETCH) -->
+                                <div class="glass-card rounded-3xl p-6 border-t-4 border-t-discord-fuchsia">
+                                    <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                                        <i class="fa-solid fa-paper-plane text-discord-fuchsia"></i>
+                                        <span>Bắn Tin Nhắn Webhook THẬT</span>
+                                    </h3>
+                                    <p class="text-xs text-gray-400 mb-4">Gửi tin nhắn Rich Embed trực tiếp đến URL Webhook thật của Discord.</p>
+
+                                    <form onsubmit="handleSendWebhookMessage(event)" class="space-y-3">
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-300 mb-1">Discord Webhook URL</label>
+                                            <input type="url" id="send-wh-url" required placeholder="https://discord.com/api/webhooks/..."
+                                                   class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-discord-fuchsia">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-300 mb-1">Nội dung tin nhắn (Content)</label>
+                                            <textarea id="send-wh-content" rows="2" placeholder="Nhập văn bản thông báo..."
+                                                      class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-discord-fuchsia"></textarea>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-300 mb-1">Embed Title</label>
+                                                <input type="text" id="send-wh-embed-title" placeholder="Tiêu đề Embed"
+                                                       class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-discord-fuchsia">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-300 mb-1">Embed Color (Hex)</label>
+                                                <input type="color" id="send-wh-embed-color" value="#5865F2"
+                                                       class="w-full h-9 bg-black/40 border border-white/10 rounded-xl px-1 py-1 cursor-pointer">
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-discord-fuchsia to-pink-600 hover:opacity-90 text-white font-bold text-sm transition-all shadow-lg shadow-discord-fuchsia/30 flex items-center justify-center gap-2">
+                                            <i class="fa-solid fa-rocket"></i>
+                                            <span>Gửi Webhook Đên Discord Ngay</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Right: Webhook List Manager -->
+                            <div class="glass-card rounded-3xl p-6 flex flex-col justify-between">
+                                <div>
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h3 class="text-lg font-bold text-white">Danh Sách Webhook Đã Lưu</h3>
+                                        <button onclick="addManualWebhook()" class="px-3 py-1.5 rounded-lg text-xs bg-discord-blurple/20 hover:bg-discord-blurple/30 text-discord-blurple border border-discord-blurple/30 font-semibold">+ Thêm URL Ngoài</button>
+                                    </div>
+
+                                    <div id="webhook-list-container" class="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+                                        <!-- Webhook Cards rendered here -->
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </section>
+
+                    <!-- TAB 4: SETTINGS & BOT TOKEN -->
+                    <section id="tab-settings" class="tab-content hidden space-y-6">
+                        <div class="max-w-3xl mx-auto space-y-6">
+                            
+                            <!-- Bot Token Configuration -->
+                            <div class="glass-card rounded-3xl p-6 border-t-4 border-t-discord-blurple">
+                                <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                                    <i class="fa-solid fa-key text-discord-blurple"></i>
+                                    <span>Cấu Hình Discord Bot Token (Dành Cho Server Actions)</span>
+                                </h3>
+                                <p class="text-xs text-gray-400 mb-6">Bot Token cho phép ứng dụng thực hiện các lệnh quản trị Server như tạo kênh, xóa kênh, quản lý webhook nâng cao thông qua Discord REST API v10.</p>
+
+                                <form onsubmit="saveBotToken(event)" class="space-y-4">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-300 mb-1">Bot Token</label>
+                                        <div class="relative">
+                                            <input type="password" id="setting-bot-token" placeholder="MTIzNDU2Nzg5..."
+                                                   class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white font-mono focus:outline-none focus:border-discord-blurple">
+                                            <button type="button" onclick="toggleTokenVisibility()" class="absolute right-3 top-3 text-gray-400 hover:text-white">
+                                                <i class="fa-solid fa-eye" id="token-eye-icon"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex gap-3">
+                                        <button type="submit" class="flex-1 py-3 rounded-xl bg-discord-blurple hover:bg-indigo-600 text-white font-bold text-sm transition-all shadow-lg shadow-discord-blurple/20">
+                                            <i class="fa-solid fa-floppy-disk mr-1.5"></i> Lưu Bot Token
+                                        </button>
+                                        <button type="button" onclick="verifyBotToken()" class="px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-sm transition-all">
+                                            Kiểm Tra Token
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Developer OAuth Credentials -->
+                            <div class="glass-card rounded-3xl p-6">
+                                <h3 class="text-lg font-bold text-white mb-4">Thông Tin OAuth2 Authorization</h3>
+                                <div class="space-y-3 text-xs font-mono">
+                                    <div class="p-3 rounded-xl bg-black/30 border border-white/5 flex justify-between items-center">
+                                        <span class="text-gray-400">Current Access Token:</span>
+                                        <span id="setting-access-token" class="text-discord-green truncate max-w-xs">Not Authenticated</span>
+                                    </div>
+                                    <div class="p-3 rounded-xl bg-black/30 border border-white/5 flex justify-between items-center">
+                                        <span class="text-gray-400">Token Type:</span>
+                                        <span class="text-gray-200">Bearer</span>
+                                    </div>
+                                    <div class="p-3 rounded-xl bg-black/30 border border-white/5 flex justify-between items-center">
+                                        <span class="text-gray-400">OAuth Scopes:</span>
+                                        <span class="text-discord-yellow">identify guilds</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </section>
+
+                </div>
+            </main>
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // ==========================================
+        // APP STATE & CONSTANTS
+        // ==========================================
+        const DISCORD_API_BASE = 'https://discord.com/api/v10';
+        
+        // Default Client ID for quick testing/demo if needed
+        const DEFAULT_CLIENT_ID = '1000000000000000000'; 
+        
+        let state = {
+            accessToken: null,
+            botToken: localStorage.getItem('dc_bot_token') || '',
+            clientId: localStorage.getItem('dc_client_id') || '',
+            user: null,
+            guilds: [],
+            channels: JSON.parse(localStorage.getItem('dc_channels') || '[]'),
+            webhooks: JSON.parse(localStorage.getItem('dc_webhooks') || '[]')
+        };
+
+        // ==========================================
+        // INITIALIZATION & OAUTH PARSER
+        // ==========================================
+        window.addEventListener('DOMContentLoaded', () => {
+            // Set current URL as default redirect URI
+            const redirectUri = window.location.origin + window.location.pathname;
+            document.getElementById('cfg-redirect-uri').value = redirectUri;
+
+            // Load saved settings to input fields
+            document.getElementById('cfg-client-id').value = state.clientId;
+            document.getElementById('cfg-bot-token').value = state.botToken;
+            document.getElementById('setting-bot-token').value = state.botToken;
+
+            // Check if returning from Discord OAuth2 Implicit Grant Flow (#access_token=...)
+            parseOAuthHash();
+            updateBotStatusUI();
+            renderSavedWebhooks();
+            renderChannelsTable();
+        });
+
+        // Parse hash fragment for access_token
+        function parseOAuthHash() {
+            const hash = window.location.hash.substring(1);
+            const params = new URLSearchParams(hash);
+            const token = params.get('access_token');
+
+            if (token) {
+                state.accessToken = token;
+                // Clear hash in URL without refreshing page
+                history.pushState("", document.title, window.location.pathname + window.location.search);
+                showToast('Đã nhận Discord Access Token thành công!', 'success');
+                initAuthenticatedSession();
+            } else {
+                // Check if session stored in memory/sessionStorage
+                const savedToken = sessionStorage.getItem('dc_access_token');
+                if (savedToken) {
+                    state.accessToken = savedToken;
+                    initAuthenticatedSession();
+                }
+            }
+        }
+
+        // Save OAuth settings to localStorage
+        function saveConfigInputs() {
+            const clientId = document.getElementById('cfg-client-id').value.trim();
+            const botToken = document.getElementById('cfg-bot-token').value.trim();
+            if (clientId) {
+                state.clientId = clientId;
+                localStorage.setItem('dc_client_id', clientId);
+            }
+            if (botToken) {
+                state.botToken = botToken;
+                localStorage.setItem('dc_bot_token', botToken);
+            }
+        }
+
+        function resetConfig() {
+            localStorage.removeItem('dc_client_id');
+            document.getElementById('cfg-client-id').value = '';
+            showToast('Đã đặt lại cấu hình.', 'info');
+        }
+
+        // Trigger real Discord OAuth2 Login
+        function loginWithDiscord() {
+            saveConfigInputs();
+
+            const clientId = state.clientId || document.getElementById('cfg-client-id').value.trim();
+            if (!clientId) {
+                showToast('Vui lòng nhập Discord Client ID trước khi đăng nhập!', 'error');
+                return;
+            }
+
+            const redirectUri = encodeURIComponent(window.location.origin + window.location.pathname);
+            const scope = encodeURIComponent('identify guilds');
+            const authUrl = `https://discord.com/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}`;
+
+            // Redirect to Discord OAuth page
+            window.location.href = authUrl;
+        }
+
+        // Demo Mode for previewing without real token
+        function demoLogin() {
+            state.accessToken = 'demo_token_123456789';
+            state.user = {
+                id: '888888888888888888',
+                username: 'CyberGamer',
+                discriminator: '0001',
+                avatar: 'a_demo',
+                email: 'cyber@discord-admin.io',
+                locale: 'vi-VN',
+                mfa_enabled: true,
+                flags: 64
+            };
+            state.guilds = [
+                { id: '111111111111111111', name: 'Cyberpunk Hub', icon: null, owner: true, permissions: '8' },
+                { id: '222222222222222222', name: 'Developer Guild', icon: null, owner: false, permissions: '8' },
+                { id: '333333333333333333', name: 'Gaming Zone VI', icon: null, owner: false, permissions: '0' }
+            ];
+
+            sessionStorage.setItem('dc_access_token', state.accessToken);
+            renderDashboard();
+            showToast('Đang ở chế độ xem Demo UI!', 'info');
+        }
+
+        // Initialize Session after Login
+        async function initAuthenticatedSession() {
+            sessionStorage.setItem('dc_access_token', state.accessToken);
+            
+            showToast('Đang kết nối API Discord để lấy dữ liệu...', 'info');
+            
+            const userFetched = await fetchDiscordUserProfile();
+            if (userFetched) {
+                await fetchDiscordUserGuilds();
+                renderDashboard();
+            }
+        }
+
+        // ==========================================
+        // DISCORD REST API CALLS (REAL LOGIC)
+        // ==========================================
+
+        // Fetch User Profile from https://discord.com/api/users/@me
+        async function fetchDiscordUserProfile() {
+            try {
+                const response = await fetch(`${DISCORD_API_BASE}/users/@me`, {
+                    headers: { 'Authorization': `Bearer ${state.accessToken}` }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP Error ${response.status}`);
+                }
+
+                state.user = await response.json();
+                return true;
+            } catch (err) {
+                console.error('Fetch Profile Error:', err);
+                showToast('Không thể lấy thông tin User từ Discord. Token có thể đã hết hạn.', 'error');
+                return false;
+            }
+        }
+
+        // Fetch User Guilds from https://discord.com/api/users/@me/guilds
+        async function fetchDiscordUserGuilds() {
+            try {
+                const response = await fetch(`${DISCORD_API_BASE}/users/@me/guilds`, {
+                    headers: { 'Authorization': `Bearer ${state.accessToken}` }
+                });
+
+                if (response.ok) {
+                    state.guilds = await response.json();
+                }
+            } catch (err) {
+                console.warn('Could not fetch guilds via OAuth Token:', err);
+            }
+        }
+
+        // Real Create Channel via Bot Token
+        async function handleCreateChannel(e) {
+            e.preventDefault();
+            const guildId = document.getElementById('chan-guild-id').value.trim();
+            const channelName = document.getElementById('chan-name').value.trim();
+            const channelType = parseInt(document.getElementById('chan-type').value);
+
+            if (!state.botToken) {
+                showToast('Vui lòng nhập Bot Token trong Cấu Hình để tạo Kênh thật trên Discord!', 'error');
+                // Mock behavior fallback
+                const mockId = Date.now().toString();
+                addChannelToState({ id: mockId, name: channelName, type: channelType, guildId: guildId, isMock: true });
+                showToast(`[MOCK] Đã tạo kênh giả lập: #${channelName}`, 'info');
+                return;
+            }
+
+            try {
+                showToast('Đang gửi lệnh tạo kênh đến Discord...', 'info');
+                const res = await fetch(`${DISCORD_API_BASE}/guilds/${guildId}/channels`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bot ${state.botToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: channelName,
+                        type: channelType
+                    })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(`Tạo kênh THẬT #${data.name} thành công!`, 'success');
+                    addChannelToState({ id: data.id, name: data.name, type: data.type, guildId: guildId });
+                } else {
+                    showToast(`Lỗi Discord API: ${data.message || 'Không có quyền'}`, 'error');
+                }
+            } catch (err) {
+                showToast(`Lỗi kết nối API: ${err.message}`, 'error');
+            }
+        }
+
+        // Real Delete Channel via Bot Token
+        async function handleDeleteChannel(e) {
+            e.preventDefault();
+            const channelId = document.getElementById('delete-chan-id').value.trim();
+
+            if (!state.botToken) {
+                // Mock fallback
+                state.channels = state.channels.filter(c => c.id !== channelId);
+                localStorage.setItem('dc_channels', JSON.stringify(state.channels));
+                renderChannelsTable();
+                showToast(`[MOCK] Đã xóa kênh ID: ${channelId}`, 'info');
+                return;
+            }
+
+            try {
+                showToast('Đang gửi lệnh xóa kênh...', 'info');
+                const res = await fetch(`${DISCORD_API_BASE}/channels/${channelId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bot ${state.botToken}`
+                    }
+                });
+
+                if (res.ok) {
+                    showToast(`Đã xóa kênh Discord ID ${channelId} thành công!`, 'success');
+                    state.channels = state.channels.filter(c => c.id !== channelId);
+                    localStorage.setItem('dc_channels', JSON.stringify(state.channels));
+                    renderChannelsTable();
+                } else {
+                    const data = await res.json();
+                    showToast(`Lỗi xóa kênh: ${data.message || 'ID Không hợp lệ'}`, 'error');
+                }
+            } catch (err) {
+                showToast(`Lỗi API: ${err.message}`, 'error');
+            }
+        }
+
+        // Real Create Webhook via Bot Token
+        async function handleCreateWebhook(e) {
+            e.preventDefault();
+            const channelId = document.getElementById('wh-chan-id').value.trim();
+            const name = document.getElementById('wh-name').value.trim();
+
+            if (!state.botToken) {
+                showToast('Cần có Bot Token để tạo Webhook trên channel!', 'error');
+                return;
+            }
+
+            try {
+                showToast('Đang yêu cầu Discord khởi tạo Webhook...', 'info');
+                const res = await fetch(`${DISCORD_API_BASE}/channels/${channelId}/webhooks`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bot ${state.botToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name: name })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(`Đã tạo Webhook THẬT: ${data.name}`, 'success');
+                    saveWebhookToState({ id: data.id, name: data.name, url: data.url, channel_id: data.channel_id });
+                } else {
+                    showToast(`Lỗi Discord API: ${data.message}`, 'error');
+                }
+            } catch (err) {
+                showToast(`Lỗi kết nối: ${err.message}`, 'error');
+            }
+        }
+
+        // Real POST Request to Discord Webhook URL
+        async function handleSendWebhookMessage(e) {
+            e.preventDefault();
+            const url = document.getElementById('send-wh-url').value.trim();
+            const content = document.getElementById('send-wh-content').value.trim();
+            const title = document.getElementById('send-wh-embed-title').value.trim();
+            const colorHex = document.getElementById('send-wh-embed-color').value;
+
+            // Convert Hex Color to Integer for Discord Embed
+            const colorInt = parseInt(colorHex.replace('#', ''), 16);
+
+            const payload = {};
+            if (content) payload.content = content;
+            if (title) {
+                payload.embeds = [{
+                    title: title,
+                    color: colorInt,
+                    timestamp: new Date().toISOString(),
+                    footer: { text: "Discord Admin Command Center" }
+                }];
+            }
+
+            if (!payload.content && !payload.embeds) {
+                showToast('Vui lòng nhập Nội dung hoặc Tiêu đề Embed!', 'error');
+                return;
+            }
+
+            try {
+                showToast('Đang phát tin nhắn đến Webhook...', 'info');
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok || res.status === 204) {
+                    showToast('Đã BẮN TIN NHẮN THẬT thành công đến Discord!', 'success');
+                } else {
+                    const errText = await res.text();
+                    showToast(`Lỗi Webhook (${res.status}): ${errText}`, 'error');
+                }
+            } catch (err) {
+                showToast(`Không thể gửi Webhook: ${err.message}`, 'error');
+            }
+        }
+
+        // ==========================================
+        // RENDER & UI UPDATES
+        // ==========================================
+
+        function renderDashboard() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.remove('hidden');
+
+            const u = state.user;
+            if (!u) return;
+
+            // User Profile Sidebar
+            document.getElementById('user-name').innerText = u.username;
+            document.getElementById('user-tag').innerText = u.discriminator ? `#${u.discriminator}` : '@' + u.username;
+            const avatarUrl = u.avatar 
+                ? `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png` 
+                : `https://cdn.discordapp.com/embed/avatars/${(parseInt(u.id) >> 22) % 6}.png`;
+            
+            document.getElementById('user-avatar').src = avatarUrl;
+            document.getElementById('overview-user-avatar').src = avatarUrl;
+            document.getElementById('overview-user-name').innerText = u.username;
+            document.getElementById('overview-user-id').innerText = `User ID: ${u.id}`;
+            document.getElementById('overview-user-email').innerText = u.email || 'OAuth (Default Scopes)';
+            document.getElementById('overview-user-locale').innerText = u.locale || 'vi-VN';
+            document.getElementById('overview-user-mfa').innerText = u.mfa_enabled ? 'Enabled' : 'Disabled';
+            document.getElementById('setting-access-token').innerText = state.accessToken ? `${state.accessToken.substring(0, 15)}...` : 'None';
+
+            // Guilds Render
+            renderGuildsList();
+
+            // Set default tab
+            switchTab('overview');
+        }
+
+        function renderGuildsList() {
+            const container = document.getElementById('guilds-grid');
+            document.getElementById('guild-count-badge').innerText = `${state.guilds.length} Servers`;
+
+            if (state.guilds.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-2 p-6 text-center text-gray-400 text-xs font-mono">
+                        Không tìm thấy server nào hoặc Scope 'guilds' chưa được cấp quyền.
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = state.guilds.map(g => {
+                const iconUrl = g.icon 
+                    ? `https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png` 
+                    : 'https://cdn.discordapp.com/embed/avatars/0.png';
+                return `
+                    <div class="p-3 rounded-2xl bg-black/30 border border-white/5 flex items-center justify-between hover:border-discord-blurple/30 transition-all">
+                        <div class="flex items-center gap-3 overflow-hidden">
+                            <img src="${iconUrl}" class="w-10 h-10 rounded-xl object-cover">
+                            <div class="truncate">
+                                <h4 class="font-bold text-sm text-white truncate">${g.name}</h4>
+                                <p class="text-[10px] text-gray-400 font-mono">ID: ${g.id}</p>
+                            </div>
+                        </div>
+                        ${g.owner ? '<span class="px-2 py-0.5 rounded text-[9px] bg-discord-yellow/20 text-discord-yellow border border-discord-yellow/30 shrink-0">Owner</span>' : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-discord-blurple/20', 'text-white', 'neon-border-blurple');
+                btn.classList.add('text-gray-300');
+            });
+
+            // Show current tab
+            const target = document.getElementById(`tab-${tabId}`);
+            if (target) target.classList.remove('hidden');
+
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-discord-blurple/20', 'text-white');
+                activeBtn.classList.remove('text-gray-300');
+            }
+
+            // Update Header Title
+            const titles = {
+                overview: 'Tổng Quan Server & User Identity',
+                channels: 'Quản Lý Kênh (Discord Channels)',
+                webhooks: 'Bảng Điều Khiển Discord Webhooks',
+                settings: 'Cấu Hình Bot Token & Authenticator'
+            };
+            document.getElementById('current-tab-title').innerText = titles[tabId] || 'Dashboard';
+        }
+
+        // ==========================================
+        // LOCAL STORAGE STATE MANAGERS
+        // ==========================================
+
+        function addChannelToState(channelObj) {
+            state.channels.unshift(channelObj);
+            localStorage.setItem('dc_channels', JSON.stringify(state.channels));
+            renderChannelsTable();
+        }
+
+        function renderChannelsTable() {
+            const tbody = document.getElementById('channels-table-body');
+            document.getElementById('stat-channel-count').innerText = `${state.channels.length} Active`;
+
+            if (state.channels.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-500">Chưa có kênh nào được ghi nhận trong danh sách.</td></tr>`;
+                return;
+            }
+
+            const typeNames = { 0: '💬 Text', 2: '🔊 Voice', 4: '📁 Category', 5: '📢 News' };
+
+            tbody.innerHTML = state.channels.map(c => `
+                <tr class="hover:bg-white/5 transition-colors">
+                    <td class="p-3">${typeNames[c.type] || '💬 Text'}</td>
+                    <td class="p-3 font-semibold text-white">#${c.name}</td>
+                    <td class="p-3 text-discord-blurple">${c.id}</td>
+                    <td class="p-3">
+                        <button onclick="quickDeleteChannel('${c.id}')" class="text-discord-red hover:underline"><i class="fa-solid fa-trash mr-1"></i>Xóa</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function clearChannelList() {
+            state.channels = [];
+            localStorage.removeItem('dc_channels');
+            renderChannelsTable();
+            showToast('Đã xóa danh sách kênh hiển thị.', 'info');
+        }
+
+        function saveWebhookToState(wh) {
+            state.webhooks.unshift(wh);
+            localStorage.setItem('dc_webhooks', JSON.stringify(state.webhooks));
+            renderSavedWebhooks();
+        }
+
+        function renderSavedWebhooks() {
+            const container = document.getElementById('webhook-list-container');
+            if (!container) return;
+
+            document.getElementById('stat-webhook-count').innerText = `${state.webhooks.length} Ready`;
+
+            if (state.webhooks.length === 0) {
+                container.innerHTML = `<div class="p-6 text-center text-gray-500 text-xs">Chưa lưu Webhook nào. Tạo mới hoặc nhấn "Thêm URL Ngoài".</div>`;
+                return;
+            }
+
+            container.innerHTML = state.webhooks.map((w, idx) => `
+                <div class="p-4 rounded-2xl bg-black/30 border border-white/5 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-sm text-white flex items-center gap-2">
+                            <i class="fa-solid fa-bolt text-discord-green"></i> ${w.name}
+                        </h4>
+                        <button onclick="deleteWebhookIndex(${idx})" class="text-xs text-discord-red hover:underline"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                    <p class="text-[11px] font-mono text-gray-400 truncate bg-black/40 p-2 rounded-lg">${w.url}</p>
+                    <div class="flex justify-end">
+                        <button onclick="useWebhookForSender('${w.url}')" class="px-3 py-1 rounded-lg bg-discord-blurple/20 text-discord-blurple hover:bg-discord-blurple hover:text-white text-xs font-semibold transition-all">
+                            Dùng Cho Trình Gửi <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addManualWebhook() {
+            const url = prompt("Nhập URL Discord Webhook:");
+            if (url && url.startsWith('https://discord.com/api/webhooks/')) {
+                const name = prompt("Đặt tên cho Webhook này:") || "Manual Webhook";
+                saveWebhookToState({ id: Date.now().toString(), name: name, url: url });
+                showToast('Đã thêm Webhook thành công!', 'success');
+            } else if (url) {
+                showToast('URL Webhook không hợp lệ!', 'error');
+            }
+        }
+
+        function deleteWebhookIndex(idx) {
+            state.webhooks.splice(idx, 1);
+            localStorage.setItem('dc_webhooks', JSON.stringify(state.webhooks));
+            renderSavedWebhooks();
+            showToast('Đã xóa Webhook khỏi bộ nhớ!', 'info');
+        }
+
+        function useWebhookForSender(url) {
+            switchTab('webhooks');
+            document.getElementById('send-wh-url').value = url;
+            showToast('Đã nạp URL Webhook vào mẫu gửi!', 'info');
+        }
+
+        // ==========================================
+        // SETTINGS & BOT TOKEN MANAGERS
+        // ==========================================
+
+        function saveBotToken(e) {
+            e.preventDefault();
+            const token = document.getElementById('setting-bot-token').value.trim();
+            state.botToken = token;
+            localStorage.setItem('dc_bot_token', token);
+            updateBotStatusUI();
+            showToast('Đã lưu Bot Token vào localStorage!', 'success');
+        }
+
+        function toggleTokenVisibility() {
+            const input = document.getElementById('setting-bot-token');
+            const icon = document.getElementById('token-eye-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('fa-slash', 'fa-eye');
+            }
+        }
+
+        async function verifyBotToken() {
+            const token = document.getElementById('setting-bot-token').value.trim();
+            if (!token) {
+                showToast('Vui lòng nhập Bot Token trước khi kiểm tra!', 'error');
+                return;
+            }
+
+            try {
+                showToast('Đang xác thực Bot Token với Discord API...', 'info');
+                const res = await fetch(`${DISCORD_API_BASE}/users/@me`, {
+                    headers: { 'Authorization': `Bot ${token}` }
+                });
+
+                if (res.ok) {
+                    const botData = await res.json();
+                    showToast(`Xác thực thành công! Bot Application: ${botData.username}#${botData.discriminator}`, 'success');
+                    state.botToken = token;
+                    localStorage.setItem('dc_bot_token', token);
+                    updateBotStatusUI();
+                } else {
+                    showToast('Bot Token KHÔNG hợp lệ hoặc bị từ chối!', 'error');
+                }
+            } catch (err) {
+                showToast(`Lỗi xác thực: ${err.message}`, 'error');
+            }
+        }
+
+        function updateBotStatusUI() {
+            const indicator = document.getElementById('bot-indicator');
+            const statusText = document.getElementById('bot-status-text');
+            const modeStat = document.getElementById('stat-bot-mode');
+
+            if (state.botToken) {
+                indicator.className = "w-2 h-2 rounded-full bg-discord-green shadow-lg shadow-discord-green/50";
+                statusText.innerText = "Bot: Connected";
+                statusText.className = "text-discord-green font-semibold";
+                if (modeStat) modeStat.innerText = "Bot Token Active";
+            } else {
+                indicator.className = "w-2 h-2 rounded-full bg-gray-500";
+                statusText.innerText = "Bot: Chưa Cấu Hình";
+                statusText.className = "text-gray-400";
+                if (modeStat) modeStat.innerText = "OAuth / Direct";
+            }
+        }
+
+        function logout() {
+            state.accessToken = null;
+            sessionStorage.removeItem('dc_access_token');
+            document.getElementById('dashboard-screen').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            showToast('Đã đăng xuất khỏi phiên làm việc.', 'info');
+        }
+
+        // ==========================================
+        // TOAST NOTIFICATION SYSTEM
+        // ==========================================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            const styles = {
+                success: 'bg-discord-green/20 border-discord-green text-discord-green',
+                error: 'bg-discord-red/20 border-discord-red text-discord-red',
+                info: 'bg-discord-blurple/20 border-discord-blurple text-discord-blurple'
+            };
+
+            const icons = {
+                success: 'fa-circle-check',
+                error: 'fa-circle-xmark',
+                info: 'fa-circle-info'
+            };
+
+            toast.className = `glass-panel border p-4 rounded-2xl shadow-2xl flex items-center gap-3 text-sm font-medium transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto ${styles[type] || styles.info}`;
+            toast.innerHTML = `
+                <i class="fa-solid ${icons[type] || icons.info} text-lg shrink-0"></i>
+                <span class="flex-1 text-gray-100">${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            // Animate In
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            // Auto Remove after 4s
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
+```
